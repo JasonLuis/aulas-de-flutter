@@ -1,0 +1,10 @@
+CREATE TRIGGER update_aluno AFTER UPDATE ON AlunoModel
+WHEN old.rm <> new.rm
+BEGIN
+ UPDATE NotaAluno SET (rm=new.rm) where rm = old.rm;
+END;
+
+CREATE TRIGGER delete_aluno BEFORE DELETE ON AlunoModel
+BEGIN
+ DELETE FROM NotaAluno WHERE rm=old.rm;
+END;

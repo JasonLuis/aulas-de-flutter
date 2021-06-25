@@ -1,0 +1,139 @@
+
+
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_dialogflow/dialogflow_v2.dart';
+import 'package:ps_chatbot/model/mensagem_bot_model.dart';
+import 'package:ps_chatbot/screens/ordencao_conversa.dart';
+
+class ConversaBotScreen extends StatefulWidget{
+  
+  @override
+  _ConversaBotState createState() => _ConversaBotState();  
+}
+  
+class _ConversaBotState extends State<ConversaBotScreen>{
+  final _listaMensagens = <MensagemBotModel>[];
+  final _controleTexto = new TextEditingController();
+
+  @override
+  void dispose() {
+    super.dispose();
+    _controleTexto.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Color.fromRGBO(7, 168, 167, 66),
+        title: Text(
+          'The Good Bot',
+            style: TextStyle(
+              color: Colors.white
+            ),    
+        ),
+      ),
+      body: Column(
+        children: <Widget>[
+         _buildList(),
+         Divider(height: 1.0),
+         _escreverMensagem() 
+        ],
+      ),
+      
+    );
+  }
+
+  Widget _buildList(){
+    return Flexible(
+      child: ListView.builder(
+        padding: EdgeInsets.all(8.0),
+        reverse: true,
+        itemBuilder: (_, int index) => OrdenacaoConversa(mensagemBot: _listaMensagens[index]),
+        itemCount: _listaMensagens.length,
+      ),
+    );
+  }
+
+  void _enviarMensagem({String texto}){
+    _controleTexto.clear();
+  }
+
+  void _addMensagem({String nome,String msg, MensagemBotType type}){
+    var mensagem = MensagemBotModel(
+      mensagem: msg, name: nome, type: type 
+    );
+    setState(() {
+      _listaMensagens.insert(0, mensagem);
+    });
+
+    
+    if (type == MensagemBotType.sent) {
+      // Envia a mensagem para o chatbot e aguarda sua resposta
+      _dialogFlowRequest(query: mensagem.mensagem);  
+    }
+  }
+
+  Future _dialogFlowRequest({String query}) async{
+    _addMensagem(
+      nome: 'Usuario',
+      msg: '...',
+      type: MensagemBotType.received,
+    );
+
+    //Utiliza o arquivo JSON gerado pelo DialogFlow para encaminhar e receber a mensagem
+    AuthGoogle authGoogle = await AuthGoogle(fileJson: "assets/credentials.json").build();
+    Dialogflow dialogflow = Dialogflow(authGoogle: authGoogle, language: "pt-BR");
+    AIResponse response = await dialogflow.detectIntent(query);
+
+    setState(() {
+      _listaMensagens.removeAt(0);
+    });
+
+    _addMensagem(
+      nome: 'The Good Bot',
+      msg: response.getMessage() ?? '',
+      type: MensagemBotType.received
+    );
+  }
+
+  Widget _escreverMensagem(){
+    return new Flexible(
+      child: new TextField(
+        controller: _controleTexto,
+        decoration: new InputDecoration.collapsed(
+          hintText: "Escreva uma mensagem",
+        ),
+      )
+    );
+  }
+
+  Widget _buttonEnviar(){
+    return new Container(
+      margin: new EdgeInsets.only(left: 8.0),
+      child: new IconButton(
+          icon: new Icon(Icons.send, color: Theme.of(context).accentColor),
+          onPressed: () {
+            if (_controleTexto.text.isNotEmpty) {
+              _enviarMensagem(texto: _controleTexto.text);
+            }
+          }),
+    );
+  }  
+
+  Widget inputEnviar(){
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: new Row(
+        children: <Widget>[
+          _escreverMensagem(),
+          _buttonEnviar(),
+        ],
+      ),
+    );
+  }
+
+}

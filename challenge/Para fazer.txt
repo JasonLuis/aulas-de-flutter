@@ -1,0 +1,18 @@
+telas
+ - criar tela de cadastro;
+ - criar tela recuperar senha;
+ - criar tela de login - OK;
+ - criar tela inicial - OK;
+ - criar tela de conversa;
+ - acrescentar botão de criar cadastro 
+ na tela inicial;
+
+Progamação
+ - criar banco de dados;
+ - criar as API;
+ - criar as funções de cada tela;
+
+Bot
+ - Criar o Bot;
+
+
